@@ -86,26 +86,37 @@ if (togglePassword && passwordField) {
 }
 
 if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const accounts = loadAccounts();
     const enteredUser = usernameField.value.trim();
     const enteredPass = passwordField.value;
 
-    const valid = accounts.some(
-      (acc) =>
-        acc.user === enteredUser &&
-        acc.pass === enteredPass &&
-        acc.isAdmin !== true,
-    );
+    try {
+      const response = await fetch("../backend/api/login.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: enteredUser, password: enteredPass }),
+      });
 
-    if (valid) {
-      errorMsg.textContent = "";
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("currentUser", enteredUser);
-      window.location.href = pageBase + "home.html";
-    } else {
-      errorMsg.textContent = "Invalid Student ID or Password";
+      const result = await response.json();
+
+      if (result.success) {
+        errorMsg.textContent = "";
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("currentUser", result.user.username);
+        localStorage.setItem("isAdmin", result.user.isAdmin ? "true" : "false");
+
+        if (result.user.isAdmin) {
+          window.location.href = pageBase + "admin-home.html";
+        } else {
+          window.location.href = pageBase + "home.html";
+        }
+      } else {
+        errorMsg.textContent = result.message;
+      }
+    } catch (err) {
+      errorMsg.textContent = "Error connecting to server.";
+      console.error(err);
     }
   });
 }
@@ -119,25 +130,33 @@ const adminPassField = document.getElementById("adminPass");
 const adminErrorMsg = document.getElementById("adminErrorMsg");
 
 if (adminLoginForm) {
-  adminLoginForm.addEventListener("submit", (e) => {
+  adminLoginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const accounts = loadAccounts();
     const user = adminUserField.value.trim();
     const pass = adminPassField.value;
 
-    const admin = accounts.find(
-      (acc) => acc.user === user && acc.pass === pass && acc.isAdmin === true,
-    );
+    try {
+      const response = await fetch("../backend/api/login.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
 
-    if (admin) {
-      adminErrorMsg.textContent = "";
-      localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("isAdmin", "true");
-      localStorage.setItem("currentUser", user);
-      // Redirect to admin dashboard
-      window.location.href = "admin-home.html";
-    } else {
-      adminErrorMsg.textContent = "Invalid Admin ID or Password";
+      const result = await response.json();
+
+      if (result.success && result.user.isAdmin) {
+        adminErrorMsg.textContent = "";
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("isAdmin", "true");
+        localStorage.setItem("currentUser", result.user.username);
+        window.location.href = "admin-home.html";
+      } else if (result.success && !result.user.isAdmin) {
+        adminErrorMsg.textContent = "This account does not have Admin access.";
+      } else {
+        adminErrorMsg.textContent = result.message;
+      }
+    } catch (err) {
+      adminErrorMsg.textContent = "Error connecting to server.";
     }
   });
 }
@@ -160,7 +179,7 @@ const signupError = document.getElementById("signupError");
 const signupSuccess = document.getElementById("signupSuccess");
 
 if (signupForm) {
-  signupForm.addEventListener("submit", (e) => {
+  signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const user = newUserField.value.trim();
     const pass = newPassField.value;
@@ -177,23 +196,28 @@ if (signupForm) {
       return;
     }
 
-    const accounts = loadAccounts();
-    if (accounts.some((acc) => acc.user === user)) {
-      signupError.textContent =
-        "Student ID already exists. Please choose another.";
-      signupSuccess.textContent = "";
-      return;
+    try {
+      const response = await fetch("../backend/api/signup.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: user, password: pass }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        signupError.textContent = "";
+        signupSuccess.textContent = result.message;
+        setTimeout(() => {
+          window.location.href = indexPath;
+        }, 1200);
+      } else {
+        signupError.textContent = result.message;
+        signupSuccess.textContent = "";
+      }
+    } catch (err) {
+      signupError.textContent = "Error connecting to server.";
     }
-
-    accounts.push({ user, pass });
-    saveAccounts(accounts);
-
-    signupError.textContent = "";
-    signupSuccess.textContent = "Account created successfully! Redirecting...";
-
-    setTimeout(() => {
-      window.location.href = indexPath;
-    }, 1200);
   });
 }
 
@@ -201,7 +225,11 @@ if (signupForm) {
    PAGE PROTECTION
 ======================================================== */
 const protectedPages = ["home.html", "permits.html", "profile.html"];
-const adminOnlyPages = ["admin-home.html", "admin-users.html"];
+const adminOnlyPages = [
+  "admin-home.html",
+  "admin-users.html",
+  "admin-permits.html",
+];
 
 if (protectedPages.some((p) => window.location.pathname.includes(p))) {
   if (localStorage.getItem("isLoggedIn") !== "true") {
@@ -292,6 +320,11 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "admin-users.html";
       });
     }
+    if (text === "Permit Management") {
+      card.parentElement.addEventListener("click", () => {
+        window.location.href = "admin-permits.html";
+      });
+    }
   });
 });
 
@@ -313,12 +346,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (eventPermitForm) {
-    eventPermitForm.addEventListener("submit", (e) => {
+    eventPermitForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const requestForm = document.getElementById("requestForm").files.length;
-      const studentId = document.getElementById("studentId").files.length;
-      const endorsement = document.getElementById("endorsement").files.length;
+      const requestForm = document.getElementById("requestForm").files[0];
+      const studentId = document.getElementById("studentId").files[0];
+      const endorsement = document.getElementById("endorsement").files[0];
       const eventDate = document.getElementById("eventDate").value;
       const purpose = document.getElementById("purpose").value.trim();
 
@@ -333,10 +366,35 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      alert("Event/Activity Permit submitted successfully! ✅");
-      eventPermitForm.reset();
-      permitType.value = "";
-      eventPermitForm.classList.add("hidden");
+      // Use FormData for file uploads
+      const formData = new FormData();
+      formData.append("student_id", localStorage.getItem("currentUser"));
+      formData.append("permit_type", "Event Permit");
+      formData.append("event_date", eventDate);
+      formData.append("purpose", purpose);
+      formData.append("request_form", requestForm);
+      formData.append("student_id_file", studentId);
+      formData.append("endorsement", endorsement);
+
+      try {
+        const response = await fetch("../backend/api/submit_permit.php", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert("Event/Activity Permit submitted successfully! ✅");
+          eventPermitForm.reset();
+          permitType.value = "";
+          eventPermitForm.classList.add("hidden");
+        } else {
+          alert("Error: " + result.message);
+        }
+      } catch (err) {
+        alert("Error connecting to server.");
+      }
     });
   }
 });
@@ -404,6 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <li><a href="${homeLink}">Home</a></li>
         <li><a href="profile.html">Profile</a></li>
         ${isAdmin ? '<li><a href="admin-users.html">User Management</a></li>' : ""}
+        ${isAdmin ? '<li><a href="admin-permits.html">Permit Management</a></li>' : ""}
         <li><a href="#" id="sideLogoutBtn">Logout</a></li>
       </ul>
     `;
