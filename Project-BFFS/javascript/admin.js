@@ -1,7 +1,3 @@
-/**********************************************************
- * NU PROJECT PAWS - ADMIN JAVASCRIPT
- **********************************************************/
-
 document.addEventListener("DOMContentLoaded", () => {
   const userTableBody = document.getElementById("userTableBody");
   const userSearch = document.getElementById("userSearch");

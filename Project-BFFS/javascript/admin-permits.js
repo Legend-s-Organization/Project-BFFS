@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
       permitTableBody.appendChild(tr);
     });
 
-    // Add event listeners
+    // Add event listeners (Re-attach because table was re-rendered)
     document.querySelectorAll(".view-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const id = parseInt(e.target.getAttribute("data-id"));
@@ -124,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let filesHtml = "";
     if (permit.files && permit.files.length > 0) {
       permit.files.forEach((file) => {
-        filesHtml += `<div>${file.name}:</div> <div><a href="../../uploads/${file.path}" target="_blank">View File</a></div>`;
+        filesHtml += `<div>${file.name}:</div> <div><a href="../uploads/${file.path}" target="_blank">View File</a></div>`;
       });
     } else {
       filesHtml = "<div>Files:</div> <div>No files uploaded.</div>";
@@ -176,6 +176,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       alert("Error connecting to server.");
     }
+  }
+
+  function closeViewModal() {
+    viewModal.style.display = "none";
+    currentPermitId = null;
   }
 
   approveBtn.addEventListener("click", () => updatePermitStatus("Approved"));

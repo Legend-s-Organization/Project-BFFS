@@ -69,6 +69,7 @@ function saveAccounts(accounts) {
 }
 
 function getApiPath() {
+  // Intelligently find the backend path based on current page location
   return inHtmlFolder() ? "../backend/api/" : "backend/api/";
 }
 const apiPath = getApiPath();
