@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let filesHtml = "";
     if (permit.files && permit.files.length > 0) {
       permit.files.forEach((file) => {
-        filesHtml += `<div>${file.name}:</div> <div><a href="../../uploads/${file.path}" target="_blank">View File</a></div>`;
+        filesHtml += `<div>${file.name}:</div> <div><a href="../uploads/${file.path}" target="_blank">View File</a></div>`;
       });
     } else {
       filesHtml = "<div>Files:</div> <div>No files uploaded.</div>";
