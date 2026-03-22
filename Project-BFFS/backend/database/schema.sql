@@ -1,7 +1,5 @@
 -- SQL Script to set up the University Permit System Database
--- Create the Database
-CREATE DATABASE IF NOT EXISTS university_paws;
-USE university_paws;
+-- NOTE: If using InfinityFree, please ensure you have already created the database in the control panel.
 
 -- Create Users Table
 CREATE TABLE IF NOT EXISTS users (

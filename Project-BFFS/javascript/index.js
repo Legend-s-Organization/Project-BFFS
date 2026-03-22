@@ -18,8 +18,7 @@ const pageBase = getPageBase();
 const indexPath = getIndexPath();
 
 function getApiPath() {
-  const isHtml = inHtmlFolder();
-  const path = isHtml ? "../backend/api/" : "backend/api/";
+  const path = inHtmlFolder() ? "../backend/api/" : "backend/api/";
   console.log("[DEBUG] Page Location:", window.location.pathname);
   console.log("[DEBUG] API Path set to:", path);
   return path;
