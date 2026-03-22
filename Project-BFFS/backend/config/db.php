@@ -3,7 +3,15 @@
  * DATABASE CONNECTION (PDO) - UNIVERSITY PERMIT SYSTEM
  **********************************************************/
 
-require_once 'config.php';
+if (file_exists(__DIR__ . '/config.php')) {
+    require_once __DIR__ . '/config.php';
+} else {
+    // Fallback defaults for XAMPP if config file is missing
+    if (!defined('DB_HOST')) define('DB_HOST', 'localhost');
+    if (!defined('DB_NAME')) define('DB_NAME', 'university_paws');
+    if (!defined('DB_USER')) define('DB_USER', 'root');
+    if (!defined('DB_PASS')) define('DB_PASS', '');
+}
 
 $host = DB_HOST;
 $db   = DB_NAME;

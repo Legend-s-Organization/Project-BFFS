@@ -69,8 +69,11 @@ function saveAccounts(accounts) {
 }
 
 function getApiPath() {
-  // Intelligently find the backend path based on current page location
-  return inHtmlFolder() ? "../backend/api/" : "backend/api/";
+  const isHtml = inHtmlFolder();
+  const path = isHtml ? "../backend/api/" : "backend/api/";
+  console.log("[DEBUG] Page Location:", window.location.pathname);
+  console.log("[DEBUG] API Path set to:", path);
+  return path;
 }
 const apiPath = getApiPath();
 
