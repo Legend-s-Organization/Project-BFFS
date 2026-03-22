@@ -17,57 +17,6 @@ function getIndexPath() {
 const pageBase = getPageBase();
 const indexPath = getIndexPath();
 
-/* ========================================================
-   DEMO ACCOUNT
-======================================================== */
-const DEMO_USER = "student01";
-const DEMO_PASS = "password01";
-const ADMIN_USER = "admin01";
-const ADMIN_PASS = "adminpass01";
-
-/* ========================================================
-   ACCOUNT STORAGE
-======================================================== */
-function loadAccounts() {
-  try {
-    const raw = localStorage.getItem("accounts");
-    if (!raw) {
-      const initial = [
-        { user: DEMO_USER, pass: DEMO_PASS },
-        { user: ADMIN_USER, pass: ADMIN_PASS, isAdmin: true },
-      ];
-      saveAccounts(initial);
-      return initial;
-    }
-    const accounts = JSON.parse(raw);
-    const hasDemo = accounts.some(
-      (a) => a.user === DEMO_USER && a.pass === DEMO_PASS,
-    );
-    const hasAdmin = accounts.some(
-      (a) => a.user === ADMIN_USER && a.pass === ADMIN_PASS,
-    );
-    if (!hasDemo) {
-      accounts.unshift({ user: DEMO_USER, pass: DEMO_PASS });
-    }
-    if (!hasAdmin) {
-      accounts.push({ user: ADMIN_USER, pass: ADMIN_PASS, isAdmin: true });
-    }
-    saveAccounts(accounts);
-    return accounts;
-  } catch {
-    const fallback = [
-      { user: DEMO_USER, pass: DEMO_PASS },
-      { user: ADMIN_USER, pass: ADMIN_PASS, isAdmin: true },
-    ];
-    saveAccounts(fallback);
-    return fallback;
-  }
-}
-
-function saveAccounts(accounts) {
-  localStorage.setItem("accounts", JSON.stringify(accounts));
-}
-
 function getApiPath() {
   const isHtml = inHtmlFolder();
   const path = isHtml ? "../backend/api/" : "backend/api/";
